@@ -197,6 +197,13 @@ namespace tinf
             return error_t::OUT_OF_DATA;
         };
 
+        static const uint8_t codelenOrder[19] = {
+            16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15
+        };
+        static const uint8_t codelenOrderAnaconda[19] = {
+            18, 17, 16, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+        };
+
         switch (state.state)
         {
             case state_t::HEADER:
@@ -263,13 +270,6 @@ namespace tinf
 
                 if (state.blockType == 2)
                 {
-                    static const uint8_t codelenOrder[19] = {
-                        16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15
-                    };
-                    static const uint8_t codelenOrderAnaconda[19] = {
-                        18, 17, 16, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-                    };
-
                     state.state = state_t::LITERAL_COUNT; [[fallthrough]];
             case state_t::LITERAL_COUNT:
 
