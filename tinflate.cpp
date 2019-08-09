@@ -79,6 +79,45 @@ namespace tinf
         0xB40BBE37UL, 0xC30C8EA1UL, 0x5A05DF1BUL, 0x2D02EF8DUL
     };
 
+    const char *error_name(
+        error_t error
+    )
+    {
+        switch (error)
+        {
+            case error_t::OK:
+                return "Ok";
+            case error_t::NO_DATA:
+                return "No data";
+            case error_t::INVALID_PARAMETER:
+                return "Invalid parameter";
+            case error_t::CUSTOM_DICTIONARY:
+                return "Custom dictionary";
+            case error_t::INVALID_STATE:
+                return "Invalid state";
+            case error_t::INVALID_BLOCK_CODE:
+                return "Invalid block code";
+            case error_t::OUT_OF_DATA:
+                return "Out of data";
+            case error_t::CORRUPT_STREAM:
+                return "Corrupt stream";
+            case error_t::HUFFMAN_TABLE_GEN_FAILED:
+                return "Huffman table gen failed";
+            case error_t::INVALID_SYMBOL:
+                return "Invalid symbol";
+            case error_t::INVALID_DISTANCE:
+                return "Invalid distance";
+            case error_t::NO_SYMBOLS:
+                return "No symbols";
+            case error_t::TOO_MANY_SYMBOLS:
+                return "Too many symbols";
+            case error_t::INCOMPLETE_TREE:
+                return "Incomplete tree";
+            default:
+                return "Not a tinflate error";
+        }
+    }
+
     error_t tinflate(
         const std::vector<uint8_t> &compressed,
         std::deque<uint8_t> &output,
@@ -120,7 +159,27 @@ namespace tinf
     {
         state.begin = begin;
         state.end = end;
-        const ptrdiff_t size = end - begin;
+
+        if (error_t er = tinflate_header(state); er != error_t::OK)
+            return er;
+
+        do {
+            error_t res = tinflate_block(output, state);
+            if (res != error_t::OK)
+                return res;
+        } while (!state.final);
+
+        if (crc)
+            *crc = state.crc;
+
+        return error_t::OK;
+    }
+
+    error_t tinflate_header(
+        decompression_state_t &state
+    )
+    {
+        const ptrdiff_t size = state.end - state.begin;
         if (size <= 0) return error_t::OUT_OF_DATA;
 
         if (state.state == state_t::INITIAL ||
@@ -164,15 +223,6 @@ namespace tinf
             }
             state.state = state_t::HEADER;
         }
-
-        do {
-            error_t res = tinflate_block(output, state);
-            if (res != error_t::OK)
-                return res;
-        } while (!state.final);
-
-        if (crc)
-            *crc = state.crc;
 
         return error_t::OK;
     }

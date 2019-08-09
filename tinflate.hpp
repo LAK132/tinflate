@@ -153,6 +153,10 @@ namespace tinf
         }
     };
 
+    const char *error_name(
+        error_t error
+    );
+
     error_t tinflate(
         const std::vector<uint8_t> &compressed,
         std::deque<uint8_t> &output,
@@ -179,6 +183,10 @@ namespace tinf
         std::deque<uint8_t> &output,
         decompression_state_t &state,
         uint32_t *crc = nullptr
+    );
+
+    error_t tinflate_header(
+        decompression_state_t &state
     );
 
     error_t tinflate_block(
